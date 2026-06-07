@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IC Reporting System</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="onGISReady()"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f4f8;color:#1a202c;}
+#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);}
+.login-card{background:white;border-radius:16px;padding:40px;width:420px;max-width:96vw;box-shadow:0 25px 50px rgba(0,0,0,.25);}
+.login-logo{text-align:center;margin-bottom:28px;}
+.emblem{width:66px;height:66px;background:linear-gradient(135deg,#1e3a5f,#2563eb);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:26px;}
+.login-logo h1{font-size:20px;font-weight:700;color:#1e3a5f;}
+.login-logo p{color:#6b7280;font-size:12px;margin-top:3px;}
+.or-line{display:flex;align-items:center;gap:10px;margin:16px 0;color:#9ca3af;font-size:12px;}
+.or-line::before,.or-line::after{content:'';flex:1;height:1px;background:#e5e7eb;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 13px;border:2px solid #e5e7eb;border-radius:8px;font-size:14px;transition:border-color .2s;outline:none;background:white;font-family:inherit;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#2563eb;}
+textarea{resize:vertical;min-height:80px;}
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;font-family:inherit;}
+.btn-primary{background:#2563eb;color:white;}.btn-primary:hover{background:#1d4ed8;}
+.btn-primary:disabled{background:#93c5fd;cursor:not-allowed;}
+.btn-secondary{background:#f3f4f6;color:#374151;}.btn-secondary:hover{background:#e5e7eb;}
+.btn-danger{background:#ef4444;color:white;}.btn-danger:hover{background:#dc2626;}
+.btn-full{width:100%;padding:12px;font-size:15px;}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.app{display:none;height:100vh;overflow:hidden;}
+.app.active{display:flex;}
+.sidebar{width:250px;background:#1e3a5f;color:white;display:flex;flex-direction:column;flex-shrink:0;}
+.sidebar-header{padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.1);}
+.sidebar-header h2{font-size:15px;font-weight:700;}
+.sidebar-header p{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px;}
+.sidebar-user{padding:14px 20px;background:rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;}
+.user-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;overflow:hidden;}
+.user-avatar img{width:100%;height:100%;object-fit:cover;}
+.user-info .uname{font-size:13px;font-weight:600;}
+.user-info .urole{font-size:11px;color:rgba(255,255,255,.55);}
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.75);border-left:3px solid transparent;transition:background .15s;}
+.nav-item:hover{background:rgba(255,255,255,.1);}
+.nav-item.active{background:rgba(255,255,255,.15);color:white;border-left-color:#f59e0b;font-weight:600;}
+.nav-item .icon{width:18px;text-align:center;font-size:15px;}
+.sidebar-footer{padding:14px 20px;border-top:1px solid rgba(255,255,255,.1);}
+.conn-badge{font-size:11px;padding:4px 10px;border-radius:20px;margin-bottom:8px;display:inline-block;}
+.conn-on{background:rgba(16,185,129,.2);color:#6ee7b7;}
+.conn-off{background:rgba(239,68,68,.2);color:#fca5a5;}
+.enc-badge{font-size:11px;padding:4px 10px;border-radius:20px;margin-bottom:8px;display:inline-block;}
+.enc-on{background:rgba(139,92,246,.2);color:#c4b5fd;}
+.enc-off{background:rgba(156,163,175,.2);color:#d1d5db;}
+.main-content{flex:1;overflow-y:auto;background:#f0f4f8;}
+.page-header{background:white;padding:18px 28px;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:10;}
+.page-header h2{font-size:20px;font-weight:700;color:#1e3a5f;}
+.page-header p{color:#6b7280;font-size:13px;margin-top:2px;}
+.ph-row{display:flex;justify-content:space-between;align-items:center;}
+.page-content{padding:24px;}
+.card{background:white;border-radius:12px;padding:22px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:20px;}
+.card-title{font-size:15px;font-weight:700;color:#1e3a5f;margin-bottom:14px;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
+.stat-card{background:white;border-radius:12px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.stat-card .sl{font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.stat-card .sv{font-size:30px;font-weight:700;color:#1e3a5f;margin-top:2px;}
+.stat-card .ss{font-size:12px;color:#6b7280;margin-top:2px;}
+.table-container{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#f8fafc;padding:11px 14px;text-align:left;font-weight:600;color:#374151;border-bottom:2px solid #e5e7eb;}
+td{padding:11px 14px;border-bottom:1px solid #f3f4f6;color:#374151;vertical-align:middle;}
+tr:hover td{background:#fafafa;}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.bg{background:#d1fae5;color:#065f46;}.by{background:#fef3c7;color:#92400e;}
+.br{background:#fee2e2;color:#991b1b;}.bb{background:#dbeafe;color:#1e40af;}
+.bgr{background:#f3f4f6;color:#374151;}.bp{background:#ede9fe;color:#5b21b6;}
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;}
+.chart-card{background:white;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.chart-card h3{font-size:14px;font-weight:600;color:#1e3a5f;margin-bottom:14px;}
+.toast{position:fixed;top:20px;right:20px;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;display:none;max-width:340px;box-shadow:0 4px 12px rgba(0,0,0,.15);}
+.toast.success{background:#d1fae5;color:#065f46;border-left:4px solid #10b981;}
+.toast.error{background:#fee2e2;color:#991b1b;border-left:4px solid #ef4444;}
+.toast.info{background:#dbeafe;color:#1e40af;border-left:4px solid #2563eb;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;}
+.modal-overlay.active{display:flex;}
+.modal{background:white;border-radius:14px;padding:28px;width:480px;max-width:92vw;max-height:85vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,.3);}
+.modal-lg{width:680px;}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.mh h3{font-size:17px;font-weight:700;color:#1e3a5f;}
+.mc{background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;padding:2px 6px;}
+.section{display:none;}.section.active{display:block;}
+.divider{border:none;border-top:1px solid #e5e7eb;margin:18px 0;}
+.et{color:#ef4444;font-size:12px;margin-top:4px;}
+.empty-state{text-align:center;padding:50px 20px;color:#6b7280;}
+.empty-state .ei{font-size:44px;margin-bottom:12px;}
+.empty-state h3{font-size:17px;font-weight:600;color:#374151;margin-bottom:6px;}
+.pb{background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden;}
+.pf{height:100%;border-radius:4px;background:#2563eb;transition:width .3s;}
+.ctag{display:inline-flex;align-items:center;gap:5px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:20px;padding:5px 11px;font-size:12px;color:#1e40af;margin:3px;}
+.ctag .rm{cursor:pointer;color:#9ca3af;font-size:15px;line-height:1;}
+.ctag .rm:hover{color:#ef4444;}
+.fdrop{border:2px dashed #e5e7eb;border-radius:8px;padding:22px;text-align:center;cursor:pointer;transition:all .2s;}
+.fdrop:hover,.fdrop.dragover{border-color:#2563eb;background:#eff6ff;}
+.ai-box{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:10px;padding:14px;margin-top:10px;font-size:13px;line-height:1.65;white-space:pre-wrap;}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.sd{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.dg{background:#10b981;}.dy{background:#f59e0b;}.dr{background:#ef4444;}
+.flex{display:flex;}.ic{align-items:center;}.jb{justify-content:space-between;}
+.g2{gap:8px;}.g3{gap:12px;}.fw{flex-wrap:wrap;}
+.mt3{margin-top:12px;}.mt4{margin-top:16px;}.mb3{margin-bottom:12px;}
+.gr2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:600px){.gr2{grid-template-columns:1fr;}}
+.rs h4{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;font-weight:600;margin-bottom:6px;}
+.rs p{font-size:13px;color:#374151;}.rs{margin-bottom:16px;}
+.ti{display:flex;gap:8px;}
+.ti input{flex:1;padding:9px 12px;border:2px solid #e5e7eb;border-radius:8px;font-size:14px;outline:none;}
+.ti input:focus{border-color:#2563eb;}
+#loading-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:9000;align-items:center;justify-content:center;}
+#loading-overlay.show{display:flex;}
+.load-card{background:white;border-radius:14px;padding:36px 48px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.3);}
+.load-spin{width:40px;height:40px;border:4px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 14px;}
+.load-msg{font-size:14px;font-weight:600;color:#1e3a5f;}
+.info-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px;font-size:13px;color:#1e40af;margin-bottom:16px;}
+.info-box strong{display:block;margin-bottom:4px;}
+.warn-box{background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:14px;font-size:13px;color:#92400e;margin-bottom:16px;}
+.warn-box strong{display:block;margin-bottom:4px;}
+.step-list{list-style:none;counter-reset:steps;}
+.step-list li{counter-increment:steps;padding:8px 0 8px 36px;position:relative;font-size:13px;color:#374151;border-bottom:1px solid #f3f4f6;}
+.step-list li::before{content:counter(steps);position:absolute;left:0;top:8px;width:24px;height:24px;background:#2563eb;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.enc-field{color:#8b5cf6;font-style:italic;font-size:12px;}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay"><div class="load-card"><div class="load-spin"></div><div class="load-msg" id="load-msg">Loading...</div></div></div>
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════ LOGIN PAGE ═══════════ -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="emblem">🏛️</div>
+      <h1>IC Reporting System</h1>
+      <p>International Cooperation Reporting Portal</p>
+    </div>
+
+    <!-- Google Sign-In (shown when Client ID is configured) -->
+    <div id="g-btn-wrap" style="display:none;text-align:center;">
+      <div id="g-btn" style="display:inline-block;min-height:44px;"></div>
+      <p style="font-size:11px;color:#9ca3af;margin-top:8px;">Sign in with your registered Gmail ID</p>
+    </div>
+
+    <div id="g-or" class="or-line" style="display:none;">Admin manual login</div>
+
+    <!-- Manual Login -->
+    <div id="manual-form">
+      <div id="login-error" class="et" style="text-align:center;margin-bottom:10px;min-height:16px;"></div>
+      <div class="form-group"><label>Email / Username</label><input type="text" id="lu" placeholder="your.email@gmail.com or admin" autocomplete="username"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="lp" placeholder="Enter password" autocomplete="current-password"></div>
+      <button class="btn btn-primary btn-full" onclick="login()">Sign In</button>
+    </div>
+
+    <!-- Toggle for manual form when Google is active -->
+    <div id="show-manual" style="display:none;text-align:center;margin-top:14px;">
+      <button class="btn btn-secondary btn-sm" onclick="toggleManual()">🔐 Admin / Manual Login</button>
+    </div>
+
+    <div id="login-footer" style="text-align:center;margin-top:14px;font-size:12px;color:#9ca3af;"></div>
+  </div>
+</div>
+
+<!-- ═══════════ ADMIN APP ═══════════ -->
+<div id="admin-app" class="app">
+  <div class="sidebar">
+    <div class="sidebar-header"><h2>🏛️ IC Reporting</h2><p>Admin Portal</p></div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="admin-av">A</div>
+      <div class="user-info"><div class="uname" id="admin-nm">Admin</div><div class="urole">Administrator</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" id="nav-a-dash"      onclick="aNav('dash')"><span class="icon">📊</span>Dashboard</div>
+      <div class="nav-item"        id="nav-a-users"     onclick="aNav('users')"><span class="icon">👥</span>Manage OI Users</div>
+      <div class="nav-item"        id="nav-a-reports"   onclick="aNav('reports')"><span class="icon">📋</span>View Reports</div>
+      <div class="nav-item"        id="nav-a-analytics" onclick="aNav('analytics')"><span class="icon">📈</span>Analytics</div>
+      <div class="nav-item"        id="nav-a-query"     onclick="aNav('query')"><span class="icon">🤖</span>AI Query</div>
+      <div class="nav-item"        id="nav-a-settings"  onclick="aNav('settings')"><span class="icon">⚙️</span>Settings</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="a-conn" class="conn-badge conn-off">🔴 Local mode</div>
+      <div id="a-enc"  class="enc-badge enc-off">🔓 Not decrypted</div>
+      <button class="btn btn-secondary" style="width:100%;font-size:12px;margin-bottom:8px;" onclick="doRefresh()">🔄 Refresh Data</button>
+      <button class="btn btn-secondary btn-full" onclick="logout()">🚪 Sign Out</button>
+    </div>
+  </div>
+  <div class="main-content">
+    <div id="sec-a-dash" class="section active">
+      <div class="page-header"><h2>Dashboard</h2><p>Overview of all IC reporting activity</p></div>
+      <div class="page-content">
+        <div id="setup-warn-a"></div>
+        <div class="stats-grid" id="a-stats"></div>
+        <div class="charts-grid">
+          <div class="chart-card"><h3>📜 MoU Status Distribution</h3><canvas id="ch-mou" height="200"></canvas></div>
+          <div class="chart-card"><h3>🗺️ Reports by Country (Top 10)</h3><canvas id="ch-country" height="200"></canvas></div>
+          <div class="chart-card"><h3>✈️ High-Level Visit Status</h3><canvas id="ch-visit" height="200"></canvas></div>
+          <div class="chart-card"><h3>📅 Reports Over Time</h3><canvas id="ch-time" height="200"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div id="sec-a-users" class="section">
+      <div class="page-header"><div class="ph-row"><div><h2>Manage OI Users</h2><p>Create and manage Officer Incharge accounts</p></div><button class="btn btn-primary" onclick="openCreateUser()">+ Create OI User</button></div></div>
+      <div class="page-content"><div class="card"><div class="table-container"><table>
+        <thead><tr><th>Name</th><th>Gmail / Email</th><th>Countries</th><th>Reports</th><th>Actions</th></tr></thead>
+        <tbody id="users-tbody"></tbody>
+      </table></div></div></div>
+    </div>
+    <div id="sec-a-reports" class="section">
+      <div class="page-header"><h2>View Reports</h2><p>All submitted reports from Officers Incharge</p></div>
+      <div class="page-content">
+        <div id="enc-warn" style="display:none;" class="warn-box" style="margin-bottom:16px;"><strong>🔒 Reports are encrypted</strong>Text details are encrypted. Enter the Decryption Key in Settings → Security to view full details. Charts and status fields are still visible.</div>
+        <div class="card" style="padding:16px;margin-bottom:16px;"><div class="gr2">
+          <div class="form-group" style="margin:0;"><label>Filter by Country</label><select id="f-country" onchange="renderReports()"><option value="">All Countries</option></select></div>
+          <div class="form-group" style="margin:0;"><label>Filter by Officer</label><select id="f-oi" onchange="renderReports()"><option value="">All Officers</option></select></div>
+        </div></div>
+        <div class="card"><div id="reports-list"></div></div>
+      </div>
+    </div>
+    <div id="sec-a-analytics" class="section">
+      <div class="page-header"><h2>Analytics</h2><p>Detailed progress tracking</p></div>
+      <div class="page-content" id="analytics-content"></div>
+    </div>
+    <div id="sec-a-query" class="section">
+      <div class="page-header"><h2>AI Query Assistant</h2><p>Ask Claude AI questions about your reporting data</p></div>
+      <div class="page-content"><div class="card">
+        <div class="card-title">🤖 Ask Claude AI</div>
+        <p style="font-size:13px;color:#6b7280;margin-bottom:14px;">Claude will analyse all current reports and answer your question. Note: encrypted text fields will show as [Encrypted] unless decryption key is set.</p>
+        <div class="form-group"><label>Your Question</label><textarea id="ai-q" rows="3" placeholder="e.g. Which countries have pending MoU negotiations?"></textarea></div>
+        <div class="flex g2 fw mt3">
+          <button class="btn btn-secondary btn-sm" onclick="sq('Summarize the overall MoU status across all countries')">MoU Summary</button>
+          <button class="btn btn-secondary btn-sm" onclick="sq('Which countries have impending high-level visits?')">Visit Schedule</button>
+          <button class="btn btn-secondary btn-sm" onclick="sq('Which OI officers have gaps in reporting coverage?')">Reporting Gaps</button>
+          <button class="btn btn-secondary btn-sm" onclick="sq('What are the key engagement activities across all countries?')">Engagements</button>
+        </div>
+        <div class="mt4"><button class="btn btn-primary" id="ai-q-btn" onclick="runQuery()">Ask Claude AI</button></div>
+        <div id="ai-q-result" style="display:none;"><hr class="divider"><div style="font-weight:600;color:#1e3a5f;font-size:13px;margin-bottom:6px;">AI Response:</div><div class="ai-box" id="ai-q-text"></div></div>
+      </div></div>
+    </div>
+    <!-- ADMIN SETTINGS -->
+    <div id="sec-a-settings" class="section">
+      <div class="page-header"><h2>Settings</h2><p>Google Sheets, Google Sign-In, Encryption, and API Key</p></div>
+      <div class="page-content">
+
+        <!-- SHEETS SETUP -->
+        <div class="card">
+          <div class="card-title">📊 Google Sheets Setup</div>
+          <div class="info-box"><strong>Required for multi-user data sharing</strong>Without this, each user's data stays on their own device. Follow the one-time setup to connect a shared Google Sheet.</div>
+          <ol class="step-list">
+            <li>Open Google Sheets → create a new blank spreadsheet</li>
+            <li>Click <strong>Extensions → Apps Script</strong></li>
+            <li>Delete all code → paste the contents of <code>AppScript.gs</code> (same folder as this app)</li>
+            <li>Click <strong>Save</strong>, then <strong>Deploy → New Deployment</strong></li>
+            <li>Type: <strong>Web App</strong> | Execute as: <strong>Me</strong> | Access: <strong>Anyone</strong></li>
+            <li>Click <strong>Deploy → Authorize → Allow</strong></li>
+            <li>Copy the <strong>Web App URL</strong> and paste below</li>
+          </ol>
+          <div class="form-group mt4"><label>Google Apps Script URL</label><div class="flex g2"><input type="text" id="sheet-url-inp" placeholder="https://script.google.com/macros/s/..." style="flex:1;"><button class="btn btn-primary" onclick="saveSheetUrl()">Save &amp; Connect</button></div></div>
+          <div id="sheet-status" style="font-size:13px;margin-top:8px;"></div>
+        </div>
+
+        <!-- GOOGLE SIGN-IN -->
+        <div class="card">
+          <div class="card-title">🔵 Google Sign-In Setup</div>
+          <div class="warn-box"><strong>⚠️ HTTP server required</strong>Google Sign-In will NOT work if you open index.html directly as a file. Use <strong>start.bat</strong> (double-click it) to launch a local server, then access the app at <strong>http://localhost:8080</strong>.</div>
+          <ol class="step-list">
+            <li>Go to <strong>console.cloud.google.com</strong> → create or select a project</li>
+            <li>Go to <strong>APIs &amp; Services → Credentials</strong></li>
+            <li>Click <strong>Create Credentials → OAuth 2.0 Client IDs</strong></li>
+            <li>Application type: <strong>Web application</strong></li>
+            <li>Under <em>Authorised JavaScript origins</em> add: <code>http://localhost:8080</code></li>
+            <li>Click <strong>Create</strong> and copy the <strong>Client ID</strong></li>
+            <li>Paste the Client ID below and click Save</li>
+          </ol>
+          <div class="form-group mt4"><label>Google OAuth Client ID</label><div class="flex g2"><input type="text" id="gsi-id-inp" placeholder="123456789-abc...apps.googleusercontent.com" style="flex:1;"><button class="btn btn-primary" onclick="saveGSI()">Save</button></div></div>
+          <div id="gsi-status" style="font-size:13px;margin-top:8px;"></div>
+        </div>
+
+        <!-- ENCRYPTION -->
+        <div class="card">
+          <div class="card-title">🔐 Security — Decryption Key</div>
+          <div class="info-box"><strong>How encryption works</strong>Each OI officer enters an encryption key in their Settings. All text details in their reports are encrypted (AES-256) before being saved to Google Sheets. The Admin enters the same key here to decrypt and view the full details. Charts and status fields are always visible without the key.</div>
+          <div class="form-group">
+            <label>Decryption Key (enter key provided by OI officers)</label>
+            <div class="flex g2"><input type="password" id="admin-enc-inp" placeholder="Enter the shared encryption key..." style="flex:1;"><button class="btn btn-secondary" onclick="toggleAdminKey()">👁</button></div>
+          </div>
+          <div class="flex g2 mt3">
+            <button class="btn btn-primary" id="decrypt-btn" onclick="applyDecKey()">🔓 Load &amp; Decrypt</button>
+            <button class="btn btn-secondary" onclick="clearDecKey()">Clear Key</button>
+          </div>
+          <div id="dec-status" style="font-size:13px;margin-top:10px;"></div>
+        </div>
+
+        <!-- API KEY -->
+        <div class="card">
+          <div class="card-title">🤖 Claude API Key</div>
+          <p style="font-size:13px;color:#6b7280;margin-bottom:14px;">Required for AI Query and report insights. Get your key from console.anthropic.com.</p>
+          <div class="form-group"><div class="flex g2"><input type="password" id="api-key-inp" placeholder="sk-ant-api03-..." style="flex:1;"><button class="btn btn-secondary" onclick="toggleKey()">👁</button></div></div>
+          <div class="flex g2 mt3"><button class="btn btn-primary" onclick="saveKey()">Save Key</button><button class="btn btn-secondary" onclick="validateKey()">Validate</button></div>
+          <div id="key-status" style="margin-top:10px;font-size:13px;"></div>
+        </div>
+
+        <!-- SYS INFO -->
+        <div class="card">
+          <div class="card-title">ℹ️ System Info</div>
+          <table style="font-size:13px;">
+            <tr><td style="padding:7px 0;font-weight:600;width:200px;">OI Users</td><td id="si-oi">-</td></tr>
+            <tr><td style="padding:7px 0;font-weight:600;">Total Reports</td><td id="si-rep">-</td></tr>
+            <tr><td style="padding:7px 0;font-weight:600;">Countries Covered</td><td id="si-cnt">-</td></tr>
+            <tr><td style="padding:7px 0;font-weight:600;">Data Source</td><td id="si-src">-</td></tr>
+            <tr><td style="padding:7px 0;font-weight:600;">Encryption</td><td id="si-enc">-</td></tr>
+            <tr><td style="padding:7px 0;font-weight:600;">Google Sign-In</td><td id="si-gsi">-</td></tr>
+            <tr><td style="padding:7px 0;font-weight:600;">Last Refreshed</td><td id="si-time">-</td></tr>
+          </table>
+        </div>
+      </div>
+    </div><!-- end settings -->
+  </div>
+</div>
+
+<!-- ═══════════ OI APP ═══════════ -->
+<div id="oi-app" class="app">
+  <div class="sidebar">
+    <div class="sidebar-header"><h2>🏛️ IC Reporting</h2><p>Officer Incharge Portal</p></div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="oi-av">O</div>
+      <div class="user-info"><div class="uname" id="oi-nm">Officer</div><div class="urole">Officer Incharge</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" id="nav-o-dash"      onclick="oNav('dash')"><span class="icon">🏠</span>My Dashboard</div>
+      <div class="nav-item"        id="nav-o-countries" onclick="oNav('countries')"><span class="icon">🌍</span>My Countries</div>
+      <div class="nav-item"        id="nav-o-report"    onclick="oNav('report')"><span class="icon">📝</span>Submit Report</div>
+      <div class="nav-item"        id="nav-o-history"   onclick="oNav('history')"><span class="icon">📋</span>Report History</div>
+      <div class="nav-item"        id="nav-o-settings"  onclick="oNav('settings')"><span class="icon">⚙️</span>Security</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="o-conn" class="conn-badge conn-off">🔴 Local mode</div>
+      <div id="o-enc"  class="enc-badge enc-off">🔓 Encryption off</div>
+      <button class="btn btn-secondary btn-full" onclick="logout()">🚪 Sign Out</button>
+    </div>
+  </div>
+  <div class="main-content">
+    <div id="sec-o-dash" class="section active">
+      <div class="page-header"><h2 id="oi-dash-title">My Dashboard</h2><p>Your reporting overview</p></div>
+      <div class="page-content"><div class="stats-grid" id="oi-stats"></div><div id="oi-cstatus"></div></div>
+    </div>
+    <div id="sec-o-countries" class="section">
+      <div class="page-header"><h2>My Countries</h2><p>Manage countries you report on</p></div>
+      <div class="page-content">
+        <div class="card"><div class="card-title">Add Country</div>
+          <div class="ti"><input type="text" id="add-c-inp" placeholder="Country name (e.g. France, Japan...)" onkeypress="if(event.key==='Enter')addCountry()"><button class="btn btn-primary" onclick="addCountry()">Add</button></div>
+        </div>
+        <div class="card"><div class="card-title">My Countries</div><div id="oi-c-list" class="flex fw"></div></div>
+      </div>
+    </div>
+    <div id="sec-o-report" class="section">
+      <div class="page-header"><h2>Submit Report</h2><p>Submit your status update for a country</p></div>
+      <div class="page-content"><div class="card">
+        <div id="enc-notice-oi" style="display:none;" class="info-box" style="margin-bottom:14px;"><strong>🔐 Encryption Active</strong>Your report details will be encrypted before being saved to the server. Only someone with the correct key can read them.</div>
+        <div class="form-group"><label>Select Country *</label><select id="r-country" onchange="checkExisting()"><option value="">-- Select Country --</option></select></div>
+        <div id="existing-notice" style="display:none;padding:10px 14px;background:#fef3c7;border-radius:8px;font-size:13px;color:#92400e;margin-bottom:14px;border:1px solid #fde68a;"></div>
+        <hr class="divider">
+        <div class="card-title">📜 Status of MoU</div>
+        <div class="gr2">
+          <div class="form-group"><label>MoU Status *</label>
+            <select id="r-mou"><option value="">-- Select --</option><option value="signed_active">Signed &amp; Active</option><option value="under_negotiation">Under Negotiation</option><option value="pending_signature">Pending Signature</option><option value="expired">Expired</option><option value="not_applicable">Not Applicable</option></select>
+          </div>
+          <div class="form-group"><label>MoU Reference No.</label><input type="text" id="r-mou-ref" placeholder="e.g. MoU/IC/2024/001"></div>
+        </div>
+        <div class="form-group"><label>MoU Details &amp; Updates</label><textarea id="r-mou-det" rows="3" placeholder="Current status, recent developments, renewals..."></textarea></div>
+        <hr class="divider">
+        <div class="card-title">✈️ High-Level Visit</div>
+        <div class="form-group"><label>Is a high-level visit impending?</label>
+          <div class="flex g3" style="margin-top:8px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;font-size:14px;"><input type="radio" name="visit" value="yes" onchange="toggleVisit(true)"> Yes</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;font-size:14px;"><input type="radio" name="visit" value="no" checked onchange="toggleVisit(false)"> No</label>
+          </div>
+        </div>
+        <div id="visit-det" style="display:none;">
+          <div class="gr2">
+            <div class="form-group"><label>Visit Type</label><select id="r-vtype"><option value="incoming">Incoming</option><option value="outgoing">Outgoing</option><option value="bilateral">Bilateral</option></select></div>
+            <div class="form-group"><label>Expected Date</label><input type="date" id="r-vdate"></div>
+          </div>
+          <div class="form-group"><label>Visiting Dignitary / Delegation</label><input type="text" id="r-vdig" placeholder="Name and designation"></div>
+          <div class="form-group"><label>Visit Details &amp; Agenda</label><textarea id="r-vdet" rows="3" placeholder="Purpose, expected outcomes..."></textarea></div>
+        </div>
+        <hr class="divider">
+        <div class="card-title">🤝 Other Engagements</div>
+        <div class="form-group"><label>Engagement Status</label>
+          <select id="r-eng-stat"><option value="">-- Select --</option><option value="active">Active</option><option value="planned">Planned</option><option value="completed">Completed</option><option value="on_hold">On Hold</option><option value="none">No Active Engagements</option></select>
+        </div>
+        <div class="form-group"><label>Engagement Details</label><textarea id="r-eng-det" rows="4" placeholder="Meetings, collaborations, projects..."></textarea></div>
+        <hr class="divider">
+        <div class="card-title">📎 Upload Documents</div>
+        <div class="fdrop" id="file-drop" onclick="document.getElementById('file-inp').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onDrop(event)">
+          <input type="file" id="file-inp" multiple style="display:none" onchange="onFileSelect(event)">
+          <div style="font-size:36px;margin-bottom:6px;">📁</div>
+          <p style="font-size:14px;font-weight:600;color:#374151;">Click or drag files here</p>
+          <p style="font-size:12px;color:#6b7280;margin-top:3px;">PDF, Word, Excel, Images (max 5MB each)</p>
+        </div>
+        <p style="font-size:11px;color:#9ca3af;margin-top:6px;">Documents are stored on this device only and are not synced to the server.</p>
+        <div id="file-list" class="mt3"></div>
+        <hr class="divider">
+        <div class="form-group"><label>Additional Notes</label><textarea id="r-notes" rows="3" placeholder="Any other context..."></textarea></div>
+        <div class="flex g2 mt3">
+          <button class="btn btn-primary" id="submit-btn" onclick="submitReport()">Submit Report</button>
+          <button class="btn btn-secondary" onclick="clearForm()">Clear</button>
+        </div>
+      </div></div>
+    </div>
+    <div id="sec-o-history" class="section">
+      <div class="page-header"><h2>Report History</h2><p>Your previously submitted reports</p></div>
+      <div class="page-content"><div class="card"><div id="oi-hist"></div></div></div>
+    </div>
+    <!-- OI SETTINGS -->
+    <div id="sec-o-settings" class="section">
+      <div class="page-header"><h2>Security Settings</h2><p>Encryption key for protecting your report data</p></div>
+      <div class="page-content">
+        <div class="card">
+          <div class="card-title">🔐 Encryption Key</div>
+          <div class="info-box"><strong>How it works</strong>Enter the encryption key provided to you by the Administrator. All sensitive text in your reports (MoU details, visit details, engagement notes) will be encrypted with this key before being stored on Google Sheets. The Admin holds the same key and uses it to decrypt your submissions.</div>
+          <div class="warn-box" style="margin-top:0;"><strong>⚠️ Important</strong>This key is your responsibility. Do not share it digitally — it should be handed over in person. If you lose the key or change it, the Admin will not be able to decrypt your previous reports.</div>
+          <div class="form-group mt3">
+            <label>Encryption Key</label>
+            <div class="flex g2"><input type="password" id="oi-enc-inp" placeholder="Enter the key given by the Admin..." style="flex:1;"><button class="btn btn-secondary" onclick="toggleOIKey()">👁</button></div>
+          </div>
+          <div class="flex g2 mt3">
+            <button class="btn btn-primary" onclick="saveOIEncKey()">🔐 Save &amp; Activate Encryption</button>
+            <button class="btn btn-secondary" onclick="clearOIEncKey()">Remove Key</button>
+          </div>
+          <div id="oi-enc-status" style="font-size:13px;margin-top:10px;"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">ℹ️ My Connection Info</div>
+          <table style="font-size:13px;">
+            <tr><td style="padding:7px 0;font-weight:600;width:180px;">Server</td><td id="oi-si-src">-</td></tr>
+            <tr><td style="padding:7px 0;font-weight:600;">Encryption</td><td id="oi-si-enc">-</td></tr>
+            <tr><td style="padding:7px 0;font-weight:600;">My Reports</td><td id="oi-si-rep">-</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CREATE USER -->
+<div class="modal-overlay" id="m-create-user">
+  <div class="modal">
+    <div class="mh"><h3>Create OI User</h3><button class="mc" onclick="closeModal('m-create-user')">✕</button></div>
+    <div class="form-group"><label>Full Name *</label><input type="text" id="nu-name" placeholder="e.g. Rajesh Kumar"></div>
+    <div class="form-group"><label>Gmail / Work Email * <span style="font-weight:400;color:#6b7280;">(will be used as login ID)</span></label><input type="email" id="nu-email" placeholder="rajesh.kumar@nic.in"></div>
+    <div class="form-group"><label>Password (for manual login fallback)</label><input type="password" id="nu-pass" placeholder="Min 6 characters (optional if using Google Sign-In)"></div>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:14px;">The OI should log in using Google Sign-In with this email. Password is only needed as a fallback.</p>
+    <div id="create-err" class="et"></div>
+    <div class="flex g2 mt4"><button class="btn btn-primary" id="create-btn" onclick="createUser()">Create</button><button class="btn btn-secondary" onclick="closeModal('m-create-user')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- MODAL: REPORT DETAIL -->
+<div class="modal-overlay" id="m-report">
+  <div class="modal modal-lg">
+    <div class="mh"><h3 id="m-report-title">Report Details</h3><button class="mc" onclick="closeModal('m-report')">✕</button></div>
+    <div id="m-report-body"></div>
+    <div id="m-report-ai" style="margin-top:14px;display:none;">
+      <hr class="divider">
+      <button class="btn btn-primary btn-sm" id="insights-btn" onclick="getInsights()">🤖 Get AI Insights</button>
+      <div id="insights-box" style="display:none;margin-top:10px;"><div class="ai-box" id="insights-text"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// ENCRYPTION (AES-256-GCM via Web Crypto API)
+// ══════════════════════════════════════════════════════════════
+const ENC_PREFIX = 'ENC:';
+const PBKDF2_SALT = new TextEncoder().encode('ic-reporting-salt-v1');
+const ENC_FIELDS  = ['mouRef','mouDet','vDig','vDet','engDet','notes'];
+
+async function deriveKey(password) {
+  const enc  = new TextEncoder();
+  const raw  = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt:PBKDF2_SALT, iterations:100000, hash:'SHA-256' },
+    raw,
+    { name:'AES-GCM', length:256 },
+    false,
+    ['encrypt','decrypt']
+  );
+}
+
+async function encryptText(text, aesKey) {
+  if (!text || !aesKey) return text;
+  const enc  = new TextEncoder();
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const ct   = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, aesKey, enc.encode(String(text)));
+  const buf  = new Uint8Array(12 + ct.byteLength);
+  buf.set(iv, 0); buf.set(new Uint8Array(ct), 12);
+  return ENC_PREFIX + btoa(String.fromCharCode(...buf));
+}
+
+async function decryptText(text, aesKey) {
+  if (!text || !aesKey) return text;
+  if (!String(text).startsWith(ENC_PREFIX)) return text;
+  try {
+    const buf = Uint8Array.from(atob(String(text).slice(4)), c => c.charCodeAt(0));
+    const dec = await crypto.subtle.decrypt({ name:'AES-GCM', iv:buf.slice(0,12) }, aesKey, buf.slice(12));
+    return new TextDecoder().decode(dec);
+  } catch(e) { return '🔒 [Encrypted — wrong key or key not set]'; }
+}
+
+function isEncrypted(val) { return typeof val === 'string' && val.startsWith(ENC_PREFIX); }
+
+async function encryptReport(report, aesKey) {
+  if (!aesKey) return report;
+  const r = { ...report };
+  for (const f of ENC_FIELDS) { if (r[f]) r[f] = await encryptText(r[f], aesKey); }
+  return r;
+}
+
+async function decryptReport(report, aesKey) {
+  if (!aesKey) return report;
+  const r = { ...report };
+  for (const f of ENC_FIELDS) { if (r[f]) r[f] = await decryptText(r[f], aesKey); }
+  return r;
+}
+
+async function decryptAll(reports, aesKey) {
+  if (!aesKey) return reports;
+  return Promise.all(reports.map(r => decryptReport(r, aesKey)));
+}
+
+// ══════════════════════════════════════════════════════════════
+// APP STATE
+// ══════════════════════════════════════════════════════════════
+const APP = {
+  users:      [],
+  _rawReps:   [],   // as received from server (may be encrypted)
+  reports:    [],   // decrypted version used for display
+  encKey:     null, // CryptoKey in memory
+  lastRefresh: null,
+
+  get scriptUrl()      { return localStorage.getItem('ic_script_url') || ''; },
+  set scriptUrl(v)     { localStorage.setItem('ic_script_url', v); },
+  get apiKey()         { return localStorage.getItem('ic_api_key') || ''; },
+  set apiKey(v)        { localStorage.setItem('ic_api_key', v); },
+  get googleClientId() { return localStorage.getItem('ic_gsi_id') || ''; },
+  set googleClientId(v){ localStorage.setItem('ic_gsi_id', v); },
+  get rawEncPwd()      { return localStorage.getItem('ic_enc_key') || ''; },
+  set rawEncPwd(v)     { localStorage.setItem('ic_enc_key', v); },
+  getSession()         { return JSON.parse(localStorage.getItem('ic_sess') || 'null'); },
+  setSession(u)        { localStorage.setItem('ic_sess', JSON.stringify(u)); },
+  clearSession()       { localStorage.removeItem('ic_sess'); },
+
+  async init() {
+    // Restore encryption key if saved
+    if (this.rawEncPwd) {
+      try { this.encKey = await deriveKey(this.rawEncPwd); } catch(e) { this.encKey = null; }
+    }
+    if (this.scriptUrl) {
+      showLoading('Connecting to Google Sheets...');
+      try { await this.loadFromSheets(); }
+      catch(e) { this.loadLocal(); toast('Could not connect to Sheets. Running in local mode.','error'); }
+      hideLoading();
+    } else {
+      this.loadLocal();
+    }
+    updateBadges();
+    const sess = this.getSession();
+    if (sess) {
+      const fresh = this.users.find(u=>u.id===sess.id);
+      if (fresh) { this.setSession({...fresh, googleAuth:sess.googleAuth, picture:sess.picture}); showApp({...fresh, picture:sess.picture}); }
+      else this.clearSession();
+    }
+    this._updateLoginUI();
+  },
+
+  _updateLoginUI() {
+    const badge = document.getElementById('login-footer');
+    if (this.scriptUrl) {
+      badge.innerHTML = '<span style="color:#10b981;">🟢 Connected to Google Sheets</span>';
+    } else {
+      badge.innerHTML = '<span style="color:#ef4444;">🔴 Local mode — data not shared</span>';
+    }
+    const cid = this.googleClientId;
+    if (cid) {
+      document.getElementById('g-btn-wrap').style.display = 'block';
+      document.getElementById('g-or').style.display        = 'flex';
+      document.getElementById('manual-form').style.display = 'none';
+      document.getElementById('show-manual').style.display = 'block';
+    }
+  },
+
+  loadLocal() {
+    this.users    = JSON.parse(localStorage.getItem('ic_users')   || '[]');
+    const reps    = JSON.parse(localStorage.getItem('ic_reports') || '[]');
+    this._rawReps = reps;
+    this.reports  = reps; // local mode: no decryption needed on load
+    if (!this.users.length) {
+      this.users = [{ id:'admin-1', username:'admin', password:'admin123', role:'admin', name:'Administrator', countries:[] }];
+      localStorage.setItem('ic_users', JSON.stringify(this.users));
+    }
+    this.lastRefresh = new Date();
+  },
+
+  async loadFromSheets() {
+    const res = await this._post({ action:'getData' });
+    if (res.error) throw new Error(res.error);
+    this.users    = res.users   || [];
+    this._rawReps = res.reports || [];
+    this.reports  = this.encKey ? await decryptAll(this._rawReps, this.encKey) : this._rawReps;
+    if (!this.users.length) throw new Error('No data returned. Check Apps Script deployment.');
+    this.lastRefresh = new Date();
+  },
+
+  async applyDecKey(password) {
+    if (!password) { this.encKey = null; this.reports = this._rawReps; return; }
+    this.encKey  = await deriveKey(password);
+    this.reports = await decryptAll(this._rawReps, this.encKey);
+  },
+
+  _post(payload) {
+    return fetch(this.scriptUrl, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) })
+      .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); });
+  },
+
+  syncUsers() {
+    if (!this.scriptUrl) { localStorage.setItem('ic_users',JSON.stringify(this.users)); return; }
+    this._post({ action:'setUsers', users:this.users }).catch(()=>toast('⚠️ Could not sync users.','error'));
+  },
+
+  addReport(encReport, plainReport) {
+    this._rawReps.push(encReport);
+    this.reports.push(plainReport);
+    if (!this.scriptUrl) { localStorage.setItem('ic_reports',JSON.stringify(this._rawReps)); return; }
+    this._post({ action:'addReport', report:encReport }).catch(()=>toast('⚠️ Could not sync report.','error'));
+  },
+
+  syncAll() {
+    if (!this.scriptUrl) { localStorage.setItem('ic_users',JSON.stringify(this.users)); localStorage.setItem('ic_reports',JSON.stringify(this._rawReps)); return; }
+    this._post({ action:'setAll', users:this.users, reports:this._rawReps }).catch(()=>toast('⚠️ Could not sync.','error'));
+  },
+
+  async refresh() {
+    if (!this.scriptUrl) { toast('Not connected to Google Sheets. Configure in Settings.','info'); return; }
+    showLoading('Refreshing...');
+    try {
+      await this.loadFromSheets();
+      const sess = this.getSession();
+      if (sess) { const f=this.users.find(u=>u.id===sess.id); if(f) this.setSession({...f,googleAuth:sess.googleAuth,picture:sess.picture}); }
+      toast('Data refreshed!','success');
+    } catch(e) { toast('Refresh failed: '+e.message,'error'); }
+    hideLoading();
+  }
+};
+
+let pendingFiles = [];
+let curReportId  = null;
+let charts       = {};
+let manualShown  = false;
+
+// ══════════════════════════════════════════════════════════════
+// GOOGLE SIGN-IN
+// ══════════════════════════════════════════════════════════════
+function onGISReady() {
+  if (APP.googleClientId) initGSI(APP.googleClientId);
+}
+
+function initGSI(clientId) {
+  if (!window.google?.accounts?.id) { setTimeout(()=>initGSI(clientId), 300); return; }
+  google.accounts.id.initialize({
+    client_id: clientId,
+    callback: onGoogleToken,
+    auto_select: true,          // auto-sign-in if Chrome already has a matching session
+    cancel_on_tap_outside: true,
+    context: 'signin',
+    ux_mode: 'popup'
+  });
+  google.accounts.id.renderButton(document.getElementById('g-btn'), {
+    theme: 'outline', size: 'large', width: 320,
+    text: 'signin_with', logo_alignment: 'left'
+  });
+  // Trigger One Tap prompt — shows "Continue as [Name]" card if Chrome is signed into matching Gmail
+  google.accounts.id.prompt(notification => {
+    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+      // One Tap not shown (user dismissed before, or no matching session) — button is still available
+      document.getElementById('login-footer').innerHTML += '<br><span style="color:#9ca3af;font-size:11px;">👆 Use the button above to sign in</span>';
+    }
+  });
+}
+
+function onGoogleToken(resp) {
+  try {
+    const b64url = resp.credential.split('.')[1];
+    const b64    = b64url.replace(/-/g,'+').replace(/_/g,'/').padEnd(b64url.length+(4-b64url.length%4)%4,'=');
+    const payload= JSON.parse(atob(b64));
+    const email  = payload.email.toLowerCase();
+    const user   = APP.users.find(u=>u.username.toLowerCase()===email);
+    if (!user) {
+      document.getElementById('login-error').textContent = `${email} is not registered. Contact the administrator.`;
+      document.getElementById('manual-form').style.display = 'block';
+      return;
+    }
+    APP.setSession({ ...user, googleAuth:true, picture:payload.picture||'' });
+    showApp({ ...user, picture:payload.picture||'' });
+  } catch(e) {
+    document.getElementById('login-error').textContent = 'Google sign-in failed: '+e.message;
+  }
+}
+
+function toggleManual() {
+  manualShown = !manualShown;
+  document.getElementById('manual-form').style.display = manualShown?'block':'none';
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  APP.init();
+  document.getElementById('lu').addEventListener('keypress', e=>{ if(e.key==='Enter') login(); });
+  document.getElementById('lp').addEventListener('keypress', e=>{ if(e.key==='Enter') login(); });
+});
+
+function showLoading(msg) { document.getElementById('load-msg').textContent=msg||'Loading...'; document.getElementById('loading-overlay').classList.add('show'); }
+function hideLoading()     { document.getElementById('loading-overlay').classList.remove('show'); }
+
+function updateBadges() {
+  const on = !!APP.scriptUrl;
+  const enc = !!APP.encKey;
+  [['a-conn','o-conn'], ['a-enc','o-enc']].forEach(() => {});
+  ['a-conn','o-conn'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.className='conn-badge '+(on?'conn-on':'conn-off');
+    el.textContent=on?'🟢 Google Sheets':'🔴 Local mode';
+  });
+  ['a-enc','o-enc'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.className='enc-badge '+(enc?'enc-on':'enc-off');
+    el.textContent=enc?'🔐 Encrypted':'🔓 No encryption';
+  });
+  // Show/hide enc notice on OI report page
+  const en=document.getElementById('enc-notice-oi');
+  if(en) en.style.display=enc?'block':'none';
+  // Show/hide enc warning on admin reports
+  const ew=document.getElementById('enc-warn');
+  if(ew) {
+    const hasEnc = APP._rawReps.some(r=>ENC_FIELDS.some(f=>isEncrypted(r[f])));
+    ew.style.display=(hasEnc&&!enc)?'block':'none';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════════
+function login() {
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value;
+  const err=document.getElementById('login-error');
+  if(!u||!p){err.textContent='Please enter username and password.';return;}
+  const found=APP.users.find(x=>x.username.toLowerCase()===u.toLowerCase()&&x.password===p);
+  if(!found){err.textContent='Invalid credentials.';return;}
+  err.textContent='';
+  APP.setSession(found);
+  showApp(found);
+}
+
+function logout() {
+  APP.clearSession();
+  document.getElementById('login-page').style.display='flex';
+  document.getElementById('admin-app').classList.remove('active');
+  document.getElementById('oi-app').classList.remove('active');
+  document.getElementById('lu').value='';document.getElementById('lp').value='';
+  manualShown=false;
+  document.getElementById('manual-form').style.display=APP.googleClientId?'none':'block';
+  APP._updateLoginUI();
+}
+
+function showApp(user) {
+  document.getElementById('login-page').style.display='none';
+  if(user.role==='admin') {
+    document.getElementById('admin-app').classList.add('active');
+    document.getElementById('admin-nm').textContent=user.name;
+    if(user.picture){document.getElementById('admin-av').innerHTML=`<img src="${user.picture}" alt="">`;}
+    else{document.getElementById('admin-av').textContent=user.name[0].toUpperCase();}
+    renderAdminDash();
+  } else {
+    document.getElementById('oi-app').classList.add('active');
+    document.getElementById('oi-nm').textContent=user.name;
+    if(user.picture){document.getElementById('oi-av').innerHTML=`<img src="${user.picture}" alt="">`;}
+    else{document.getElementById('oi-av').textContent=user.name[0].toUpperCase();}
+    document.getElementById('oi-dash-title').textContent='Welcome, '+user.name;
+    renderOIDash();renderOICountries();fillReportCountries();
+  }
+  updateBadges();
+}
+
+async function doRefresh() {
+  await APP.refresh();
+  document.querySelector('#admin-app .nav-item.active')?.click();
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════════════
+function aNav(s){
+  document.querySelectorAll('#admin-app .nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('nav-a-'+s).classList.add('active');
+  document.querySelectorAll('#admin-app .section').forEach(el=>el.classList.remove('active'));
+  document.getElementById('sec-a-'+s).classList.add('active');
+  if(s==='dash')      renderAdminDash();
+  if(s==='users')     renderUsersTable();
+  if(s==='reports')   {fillFilters();renderReports();}
+  if(s==='analytics') renderAnalytics();
+  if(s==='settings')  renderSettings();
+}
+function oNav(s){
+  document.querySelectorAll('#oi-app .nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('nav-o-'+s).classList.add('active');
+  document.querySelectorAll('#oi-app .section').forEach(el=>el.classList.remove('active'));
+  document.getElementById('sec-o-'+s).classList.add('active');
+  if(s==='dash')      renderOIDash();
+  if(s==='countries') renderOICountries();
+  if(s==='report')    fillReportCountries();
+  if(s==='history')   renderOIHist();
+  if(s==='settings')  renderOISettings();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ADMIN DASHBOARD
+// ══════════════════════════════════════════════════════════════
+function renderAdminDash(){
+  const reps=APP.reports; const ois=APP.users.filter(u=>u.role==='oi');
+  const ctrs=[...new Set(reps.map(r=>r.country))];
+  const warn=document.getElementById('setup-warn-a');
+  warn.innerHTML=!APP.scriptUrl?`<div class="warn-box" style="margin-bottom:20px;"><strong>⚠️ Running in Local Mode</strong>OI officers on other computers cannot share data. Go to <strong>Settings → Google Sheets Setup</strong> to enable multi-user sharing.</div>`:'';
+  document.getElementById('a-stats').innerHTML=`
+    <div class="stat-card"><div class="sl">Total Reports</div><div class="sv">${reps.length}</div><div class="ss">All countries</div></div>
+    <div class="stat-card"><div class="sl">OI Officers</div><div class="sv">${ois.length}</div><div class="ss">Active accounts</div></div>
+    <div class="stat-card"><div class="sl">Countries Covered</div><div class="sv">${ctrs.length}</div><div class="ss">Unique</div></div>
+    <div class="stat-card"><div class="sl">Pending Visits</div><div class="sv">${reps.filter(r=>r.vImpend).length}</div><div class="ss">High-level</div></div>`;
+  setTimeout(()=>{drawMou(reps);drawCountry(reps);drawVisit(reps);drawTime(reps);},80);
+}
+function drawMou(r){const c=document.getElementById('ch-mou');if(!c)return;const t={signed_active:0,under_negotiation:0,pending_signature:0,expired:0,not_applicable:0};r.forEach(x=>{if(t[x.mouStat]!==undefined)t[x.mouStat]++;});if(charts.mou)charts.mou.destroy();charts.mou=new Chart(c,{type:'doughnut',data:{labels:['Signed','Negotiating','Pending','Expired','N/A'],datasets:[{data:Object.values(t),backgroundColor:['#10b981','#f59e0b','#3b82f6','#ef4444','#9ca3af'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}});}
+function drawCountry(r){const c=document.getElementById('ch-country');if(!c)return;const t={};r.forEach(x=>{t[x.country]=(t[x.country]||0)+1;});const top=Object.entries(t).sort((a,b)=>b[1]-a[1]).slice(0,10);if(charts.country)charts.country.destroy();charts.country=new Chart(c,{type:'bar',data:{labels:top.map(e=>e[0]),datasets:[{label:'Reports',data:top.map(e=>e[1]),backgroundColor:'#2563eb',borderRadius:5}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});}
+function drawVisit(r){const c=document.getElementById('ch-visit');if(!c)return;const t={incoming:0,outgoing:0,bilateral:0,none:0};r.forEach(x=>{if(x.vImpend)t[x.vType||'incoming']++;else t.none++;});if(charts.visit)charts.visit.destroy();charts.visit=new Chart(c,{type:'pie',data:{labels:['Incoming','Outgoing','Bilateral','No Visit'],datasets:[{data:Object.values(t),backgroundColor:['#8b5cf6','#f59e0b','#06b6d4','#9ca3af'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}});}
+function drawTime(r){const c=document.getElementById('ch-time');if(!c)return;const m={};r.forEach(x=>{const k=x.date?x.date.slice(0,7):'?';m[k]=(m[k]||0)+1;});const s=Object.entries(m).sort((a,b)=>a[0]>b[0]?1:-1).slice(-12);if(charts.time)charts.time.destroy();charts.time=new Chart(c,{type:'line',data:{labels:s.map(e=>e[0]),datasets:[{label:'Reports',data:s.map(e=>e[1]),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.1)',fill:true,tension:.4,borderWidth:2,pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});}
+
+// ══════════════════════════════════════════════════════════════
+// ADMIN USERS
+// ══════════════════════════════════════════════════════════════
+function renderUsersTable(){
+  const ois=APP.users.filter(u=>u.role==='oi');
+  const tb=document.getElementById('users-tbody');
+  if(!ois.length){tb.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:40px;color:#9ca3af;">No OI users yet.</td></tr>`;return;}
+  tb.innerHTML=ois.map(u=>`<tr>
+    <td><strong>${u.name}</strong></td>
+    <td style="color:#6b7280;">${u.username}</td>
+    <td>${(u.countries||[]).length?(u.countries||[]).map(c=>`<span class="badge bb" style="margin:2px;">${c}</span>`).join(''):'<span style="color:#9ca3af;font-size:12px;">None</span>'}</td>
+    <td><span class="badge ${APP.reports.filter(r=>r.oiId===u.id).length?'bg':'bgr'}">${APP.reports.filter(r=>r.oiId===u.id).length}</span></td>
+    <td><div class="flex g2"><button class="btn btn-secondary btn-sm" onclick="viewOIRep('${u.id}')">Reports</button><button class="btn btn-danger btn-sm" onclick="delUser('${u.id}','${u.name.replace(/'/g,"\\'")}')">Delete</button></div></td>
+  </tr>`).join('');
+}
+
+function openCreateUser(){
+  ['nu-name','nu-email','nu-pass'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('create-err').textContent='';
+  document.getElementById('create-btn').disabled=false;
+  document.getElementById('create-btn').innerHTML='Create';
+  document.getElementById('m-create-user').classList.add('active');
+}
+
+async function createUser(){
+  const name =document.getElementById('nu-name').value.trim();
+  const email=document.getElementById('nu-email').value.trim().toLowerCase();
+  const pass =document.getElementById('nu-pass').value;
+  const err  =document.getElementById('create-err');
+  if(!name||!email){err.textContent='Name and email are required.';return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Please enter a valid email address.';return;}
+  if(pass&&pass.length<6){err.textContent='Password must be at least 6 characters.';return;}
+  if(APP.users.find(u=>u.username.toLowerCase()===email)){err.textContent='This email is already registered.';return;}
+  const btn=document.getElementById('create-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>Saving...';
+  APP.users.push({id:'oi-'+Date.now(),username:email,password:pass||'',role:'oi',name,countries:[]});
+  APP.syncUsers();
+  closeModal('m-create-user');
+  renderUsersTable();
+  toast(`OI User "${name}" (${email}) created!`,'success');
+}
+
+function delUser(id,name){
+  if(!confirm(`Delete user "${name}"?\nThis will also delete all their reports.`))return;
+  APP.users=APP.users.filter(u=>u.id!==id);
+  APP._rawReps=APP._rawReps.filter(r=>r.oiId!==id);
+  APP.reports=APP.reports.filter(r=>r.oiId!==id);
+  showLoading('Syncing...');
+  APP.syncAll();
+  hideLoading();
+  renderUsersTable();
+  toast('User deleted.','success');
+}
+
+function viewOIRep(id){aNav('reports');setTimeout(()=>{document.getElementById('f-oi').value=id;renderReports();},100);}
+
+// ══════════════════════════════════════════════════════════════
+// ADMIN REPORTS
+// ══════════════════════════════════════════════════════════════
+function fillFilters(){
+  const ctrs=[...new Set(APP.reports.map(r=>r.country))].sort();
+  document.getElementById('f-country').innerHTML='<option value="">All Countries</option>'+ctrs.map(c=>`<option>${c}</option>`).join('');
+  document.getElementById('f-oi').innerHTML='<option value="">All Officers</option>'+APP.users.filter(u=>u.role==='oi').map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+}
+
+function renderReports(){
+  let reps=[...APP.reports];
+  const fc=document.getElementById('f-country').value;
+  const fo=document.getElementById('f-oi').value;
+  if(fc)reps=reps.filter(r=>r.country===fc);
+  if(fo)reps=reps.filter(r=>r.oiId===fo);
+  reps.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const el=document.getElementById('reports-list');
+  if(!reps.length){el.innerHTML=`<div class="empty-state"><div class="ei">📋</div><h3>No Reports Found</h3></div>`;return;}
+  el.innerHTML=`<div class="table-container"><table>
+    <thead><tr><th>Date</th><th>Country</th><th>Officer</th><th>MoU Status</th><th>Visit</th><th>Engagement</th><th></th></tr></thead>
+    <tbody>${reps.map(r=>`<tr>
+      <td>${fmtDate(r.date)}</td><td><strong>${r.country}</strong></td>
+      <td>${r.oiName}${ENC_FIELDS.some(f=>isEncrypted(r[f]))?'<span class="badge bp" style="margin-left:4px;font-size:10px;">🔐 enc</span>':''}</td>
+      <td>${mouBadge(r.mouStat)}</td>
+      <td>${r.vImpend?'<span class="badge by">Yes</span>':'<span class="badge bgr">No</span>'}</td>
+      <td>${r.engStat?engBadge(r.engStat):'-'}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="viewReport('${r.id}')">View</button></td>
+    </tr>`).join('')}</tbody></table></div>`;
+  updateBadges();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ANALYTICS
+// ══════════════════════════════════════════════════════════════
+function renderAnalytics(){
+  const reps=APP.reports;const ois=APP.users.filter(u=>u.role==='oi');
+  const rows=ois.map(u=>{const ctrs=u.countries||[];const done=[...new Set(reps.filter(r=>r.oiId===u.id).map(r=>r.country))];const pct=ctrs.length?Math.round(done.length/ctrs.length*100):0;
+    return `<div style="margin-bottom:14px;"><div class="flex jb ic" style="margin-bottom:5px;"><span style="font-size:13px;font-weight:600;">${u.name}</span><span style="font-size:12px;color:#6b7280;">${done.length}/${ctrs.length} (${pct}%)</span></div><div class="pb"><div class="pf" style="width:${pct}%;background:${pct===100?'#10b981':pct>50?'#f59e0b':'#2563eb'}"></div></div></div>`;
+  });
+  const cs=getCStats(reps);
+  document.getElementById('analytics-content').innerHTML=`
+    <div class="card"><div class="card-title">📊 OI Reporting Progress</div>${rows.length?rows.join(''):'<p style="color:#9ca3af;font-size:13px;">No OI users yet.</p>'}</div>
+    <div class="charts-grid"><div class="chart-card"><h3>📜 MoU Breakdown</h3><canvas id="ac-mou" height="200"></canvas></div><div class="chart-card"><h3>🤝 Engagement Status</h3><canvas id="ac-eng" height="200"></canvas></div></div>
+    <div class="card"><div class="card-title">🌍 Country-wise Summary</div><div class="table-container"><table>
+      <thead><tr><th>Country</th><th>Reports</th><th>Latest MoU</th><th>Pending Visit</th><th>Last Updated</th></tr></thead>
+      <tbody>${cs.map(c=>`<tr><td><strong>${c.country}</strong></td><td><span class="badge bb">${c.count}</span></td><td>${mouBadge(c.mou)}</td><td>${c.visit?'<span class="badge by">Yes</span>':'<span class="badge bgr">No</span>'}</td><td>${fmtDate(c.last)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`;
+  setTimeout(()=>{
+    const mc=document.getElementById('ac-mou');if(mc){const t={signed_active:0,under_negotiation:0,pending_signature:0,expired:0,not_applicable:0};reps.forEach(r=>{if(t[r.mouStat]!==undefined)t[r.mouStat]++;});new Chart(mc,{type:'bar',data:{labels:['Signed','Negotiating','Pending','Expired','N/A'],datasets:[{label:'Count',data:Object.values(t),backgroundColor:'#2563eb',borderRadius:5}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});}
+    const ec=document.getElementById('ac-eng');if(ec){const t={};reps.forEach(r=>{const k=fmtEng(r.engStat||'none');t[k]=(t[k]||0)+1;});new Chart(ec,{type:'doughnut',data:{labels:Object.keys(t),datasets:[{data:Object.values(t),backgroundColor:['#10b981','#3b82f6','#f59e0b','#ef4444','#9ca3af','#8b5cf6'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}});}
+  },80);
+}
+function getCStats(reps){const m={};reps.forEach(r=>{if(!m[r.country])m[r.country]=[];m[r.country].push(r);});return Object.entries(m).map(([c,rs])=>{const s=rs.sort((a,b)=>new Date(b.date)-new Date(a.date));return{country:c,count:rs.length,mou:s[0].mouStat,visit:rs.some(r=>r.vImpend),last:s[0].date};}).sort((a,b)=>b.count-a.count);}
+
+// ══════════════════════════════════════════════════════════════
+// ADMIN SETTINGS
+// ══════════════════════════════════════════════════════════════
+function renderSettings(){
+  const k=APP.apiKey;if(k)document.getElementById('api-key-inp').value=k;
+  const u=APP.scriptUrl;if(u)document.getElementById('sheet-url-inp').value=u;
+  const gid=APP.googleClientId;if(gid)document.getElementById('gsi-id-inp').value=gid;
+  const enc=APP.rawEncPwd;if(enc)document.getElementById('admin-enc-inp').value=enc;
+  const reps=APP.reports;const ois=APP.users.filter(u=>u.role==='oi');
+  document.getElementById('si-oi').textContent =ois.length;
+  document.getElementById('si-rep').textContent=reps.length;
+  document.getElementById('si-cnt').textContent=[...new Set(reps.map(r=>r.country))].length;
+  document.getElementById('si-src').innerHTML  =APP.scriptUrl?'<span class="badge bg">Google Sheets</span>':'<span class="badge by">Local device</span>';
+  document.getElementById('si-enc').innerHTML  =APP.encKey?'<span class="badge bp">🔐 Active</span>':'<span class="badge bgr">Not set</span>';
+  document.getElementById('si-gsi').innerHTML  =APP.googleClientId?'<span class="badge bg">Configured</span>':'<span class="badge bgr">Not configured</span>';
+  document.getElementById('si-time').textContent=APP.lastRefresh?APP.lastRefresh.toLocaleTimeString():'N/A';
+}
+
+async function saveSheetUrl(){
+  const url=document.getElementById('sheet-url-inp').value.trim();
+  const el=document.getElementById('sheet-status');
+  if(!url){toast('Please enter the URL.','error');return;}
+  if(!url.startsWith('https://script.google.com/')){el.innerHTML='<span style="color:#f59e0b;">⚠️ URL does not look correct. Please check.</span>';return;}
+  el.innerHTML='<span class="spin"></span> Testing...';
+  try{
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'ping'})});
+    const d=await res.json();if(d.error)throw new Error(d.error);
+    APP.scriptUrl=url;showLoading('Loading data...');await APP.loadFromSheets();hideLoading();
+    updateBadges();el.innerHTML='<span style="color:#10b981;">✅ Connected! Data loaded.</span>';toast('Connected!','success');renderSettings();
+  }catch(e){hideLoading();el.innerHTML=`<span style="color:#ef4444;">❌ ${e.message}</span>`;}
+}
+
+function saveGSI(){
+  const id=document.getElementById('gsi-id-inp').value.trim();
+  const el=document.getElementById('gsi-status');
+  if(!id){toast('Please enter the Client ID.','error');return;}
+  APP.googleClientId=id;
+  initGSI(id);
+  document.getElementById('g-btn-wrap').style.display='block';
+  document.getElementById('g-or').style.display='flex';
+  document.getElementById('manual-form').style.display='none';
+  document.getElementById('show-manual').style.display='block';
+  el.innerHTML='<span style="color:#10b981;">✅ Saved. Google Sign-In button should appear on the login page.</span>';
+  toast('Google Sign-In configured!','success');
+  renderSettings();
+}
+
+async function applyDecKey(){
+  const k=document.getElementById('admin-enc-inp').value.trim();
+  const el=document.getElementById('dec-status');
+  if(!k){toast('Please enter the decryption key.','error');return;}
+  const btn=document.getElementById('decrypt-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>Decrypting...';
+  try{
+    await APP.applyDecKey(k);
+    APP.rawEncPwd=k;
+    const n=APP.reports.filter(r=>!ENC_FIELDS.some(f=>isEncrypted(r[f]))).length;
+    el.innerHTML=`<span style="color:#10b981;">✅ Key applied. ${APP.reports.length} reports processed.</span>`;
+    toast('Data decrypted!','success');
+    updateBadges();
+    renderSettings();
+  }catch(e){el.innerHTML=`<span style="color:#ef4444;">❌ ${e.message}</span>`;}
+  btn.disabled=false;btn.innerHTML='🔓 Load & Decrypt';
+}
+
+function clearDecKey(){
+  APP.encKey=null;APP.rawEncPwd='';APP.reports=[...APP._rawReps];
+  localStorage.removeItem('ic_enc_key');
+  document.getElementById('admin-enc-inp').value='';
+  document.getElementById('dec-status').innerHTML='<span style="color:#6b7280;">Key cleared.</span>';
+  updateBadges();renderSettings();toast('Decryption key cleared.','info');
+}
+
+function saveKey(){const k=document.getElementById('api-key-inp').value.trim();if(!k){toast('Enter an API key.','error');return;}APP.apiKey=k;toast('API key saved!','success');document.getElementById('key-status').innerHTML='<span style="color:#10b981;">✅ Saved.</span>';renderSettings();}
+function toggleKey(){const i=document.getElementById('api-key-inp');i.type=i.type==='password'?'text':'password';}
+function toggleAdminKey(){const i=document.getElementById('admin-enc-inp');i.type=i.type==='password'?'text':'password';}
+
+async function validateKey(){
+  const k=document.getElementById('api-key-inp').value.trim();
+  const el=document.getElementById('key-status');
+  if(!k){toast('Enter a key.','error');return;}
+  el.innerHTML='<span class="spin"></span> Validating...';
+  try{const r=await claudeCall('Reply with exactly: KEY_VALID',k);el.innerHTML=`<span style="color:#10b981;">✅ Valid! (${r.trim()})</span>`;APP.apiKey=k;renderSettings();}
+  catch(e){el.innerHTML=`<span style="color:#ef4444;">❌ ${e.message}</span>`;}
+}
+
+// ══════════════════════════════════════════════════════════════
+// OI SETTINGS
+// ══════════════════════════════════════════════════════════════
+function renderOISettings(){
+  const enc=APP.rawEncPwd;if(enc)document.getElementById('oi-enc-inp').value=enc;
+  const sess=APP.getSession();
+  document.getElementById('oi-si-src').innerHTML=APP.scriptUrl?'<span class="badge bg">Google Sheets</span>':'<span class="badge by">Local mode</span>';
+  document.getElementById('oi-si-enc').innerHTML=APP.encKey?'<span class="badge bp">🔐 Encryption Active</span>':'<span class="badge bgr">Not set</span>';
+  document.getElementById('oi-si-rep').textContent=sess?APP.reports.filter(r=>r.oiId===sess.id).length:'0';
+}
+
+async function saveOIEncKey(){
+  const k=document.getElementById('oi-enc-inp').value.trim();
+  const el=document.getElementById('oi-enc-status');
+  if(!k){toast('Please enter an encryption key.','error');return;}
+  try{
+    APP.encKey=await deriveKey(k);
+    APP.rawEncPwd=k;
+    el.innerHTML='<span style="color:#10b981;">✅ Encryption key saved. Future reports will be encrypted.</span>';
+    updateBadges();renderOISettings();
+    toast('Encryption activated!','success');
+  }catch(e){el.innerHTML=`<span style="color:#ef4444;">❌ ${e.message}</span>`;}
+}
+
+function clearOIEncKey(){
+  APP.encKey=null;APP.rawEncPwd='';localStorage.removeItem('ic_enc_key');
+  document.getElementById('oi-enc-inp').value='';
+  document.getElementById('oi-enc-status').innerHTML='<span style="color:#6b7280;">Encryption removed. Future reports will not be encrypted.</span>';
+  updateBadges();renderOISettings();toast('Encryption key removed.','info');
+}
+
+function toggleOIKey(){const i=document.getElementById('oi-enc-inp');i.type=i.type==='password'?'text':'password';}
+
+// ══════════════════════════════════════════════════════════════
+// AI
+// ══════════════════════════════════════════════════════════════
+async function claudeCall(prompt,key){
+  const k=key||APP.apiKey;if(!k)throw new Error('No API key. Set it in Settings.');
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1024,messages:[{role:'user',content:prompt}]})});
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error '+res.status);}
+  return(await res.json()).content[0].text;
+}
+function sq(q){document.getElementById('ai-q').value=q;}
+async function runQuery(){
+  const q=document.getElementById('ai-q').value.trim();if(!q){toast('Enter a question.','error');return;}
+  const btn=document.getElementById('ai-q-btn');btn.disabled=true;btn.innerHTML='<span class="spin"></span>Asking...';
+  const ctx=buildCtx();
+  try{const r=await claudeCall(`You are an AI assistant for an IC Reporting system.\n\n${ctx}\n\nQuestion: ${q}\n\nGive a concise, factual response based on the data.`);document.getElementById('ai-q-text').textContent=r;document.getElementById('ai-q-result').style.display='block';}
+  catch(e){toast(e.message,'error');}
+  btn.disabled=false;btn.innerHTML='Ask Claude AI';
+}
+function buildCtx(){
+  const reps=APP.reports;const ois=APP.users.filter(u=>u.role==='oi');
+  let c=`IC Reporting Data (${reps.length} reports):\nOfficers:\n`;
+  ois.forEach(u=>c+=`- ${u.name} [${u.username}]: ${(u.countries||[]).join(', ')||'no countries'}\n`);
+  c+='\nReports:\n';
+  reps.slice(0,60).forEach(r=>{
+    c+=`[${r.date}] ${r.country} by ${r.oiName}: MoU=${fmtMou(r.mouStat)}, Visit=${r.vImpend?'Yes':'No'}, Eng=${fmtEng(r.engStat)}\n`;
+    if(r.mouDet&&!isEncrypted(r.mouDet))c+=`  MoU: ${r.mouDet.slice(0,150)}\n`;
+    if(r.engDet&&!isEncrypted(r.engDet))c+=`  Engagement: ${r.engDet.slice(0,150)}\n`;
+  });
+  return c;
+}
+async function getInsights(){
+  if(!curReportId)return;
+  const r=APP.reports.find(x=>x.id===curReportId);if(!r)return;
+  const btn=document.getElementById('insights-btn');btn.disabled=true;btn.innerHTML='<span class="spin"></span>Analysing...';
+  const p=`Analyse this IC report:\nCountry: ${r.country}\nDate: ${r.date}\nOfficer: ${r.oiName}\nMoU: ${fmtMou(r.mouStat)}\nMoU Details: ${r.mouDet||'N/A'}\nVisit Impending: ${r.vImpend?'Yes':'No'}\n${r.vImpend?`Visit: ${r.vDet||'N/A'}`:''}Engagement: ${fmtEng(r.engStat)}\nEngagement Details: ${r.engDet||'N/A'}\nNotes: ${r.notes||'N/A'}\n\nProvide: 1) Key highlights 2) Areas needing attention 3) Recommended next steps.`;
+  try{const t=await claudeCall(p);document.getElementById('insights-text').textContent=t;document.getElementById('insights-box').style.display='block';}
+  catch(e){toast(e.message,'error');}
+  btn.disabled=false;btn.innerHTML='🤖 Get AI Insights';
+}
+
+// ══════════════════════════════════════════════════════════════
+// OI DASHBOARD
+// ══════════════════════════════════════════════════════════════
+function renderOIDash(){
+  const s=APP.getSession();if(!s)return;
+  const myReps=APP.reports.filter(r=>r.oiId===s.id);
+  const ctrs=s.countries||[];const done=[...new Set(myReps.map(r=>r.country))];
+  document.getElementById('oi-stats').innerHTML=`
+    <div class="stat-card"><div class="sl">My Countries</div><div class="sv">${ctrs.length}</div><div class="ss">Assigned</div></div>
+    <div class="stat-card"><div class="sl">Reports Submitted</div><div class="sv">${myReps.length}</div><div class="ss">Total</div></div>
+    <div class="stat-card"><div class="sl">Countries Reported</div><div class="sv">${done.length}</div><div class="ss">of ${ctrs.length}</div></div>
+    <div class="stat-card"><div class="sl">Pending Visits</div><div class="sv">${myReps.filter(r=>r.vImpend).length}</div><div class="ss">High-level</div></div>`;
+  const el=document.getElementById('oi-cstatus');
+  if(!ctrs.length){el.innerHTML=`<div class="card"><div class="empty-state"><div class="ei">🌍</div><h3>No Countries Added</h3><p>Go to "My Countries" to add the countries you are responsible for.</p></div></div>`;return;}
+  el.innerHTML=`<div class="card"><div class="card-title">🌍 Country Reporting Status</div>
+    ${ctrs.map(c=>{const cr=myReps.filter(r=>r.country===c).sort((a,b)=>new Date(b.date)-new Date(a.date));const lt=cr[0];
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #f3f4f6;">
+        <div style="display:flex;align-items:center;gap:9px;"><span class="sd ${lt?'dg':'dr'}"></span><div><div style="font-weight:600;font-size:13px;">${c}</div><div style="font-size:11px;color:#6b7280;">${lt?'Last: '+fmtDate(lt.date):'Not yet reported'}</div></div></div>
+        <div style="display:flex;align-items:center;gap:7px;">${lt?mouBadge(lt.mouStat):'<span class="badge br">No Report</span>'}<button class="btn btn-primary btn-sm" onclick="startReport('${c}')">Report</button></div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function startReport(c){oNav('report');setTimeout(()=>{document.getElementById('r-country').value=c;checkExisting();},80);}
+
+// ══════════════════════════════════════════════════════════════
+// OI COUNTRIES
+// ══════════════════════════════════════════════════════════════
+function renderOICountries(){
+  const s=APP.getSession();if(!s)return;
+  const ctrs=s.countries||[];
+  const el=document.getElementById('oi-c-list');
+  if(!ctrs.length){el.innerHTML='<p style="color:#9ca3af;font-size:13px;">No countries added yet.</p>';return;}
+  el.innerHTML=ctrs.map(c=>`<span class="ctag">🌍 ${c}<span class="rm" onclick="removeCountry('${c.replace(/'/g,"\\'")}')">✕</span></span>`).join('');
+}
+function addCountry(){
+  const inp=document.getElementById('add-c-inp');const c=inp.value.trim();if(!c)return;
+  const s=APP.getSession();if(!s)return;
+  const idx=APP.users.findIndex(u=>u.id===s.id);if(idx===-1)return;
+  APP.users[idx].countries=APP.users[idx].countries||[];
+  if(APP.users[idx].countries.includes(c)){toast('Country already added.','error');return;}
+  APP.users[idx].countries.push(c);
+  APP.setSession({...APP.users[idx],googleAuth:s.googleAuth,picture:s.picture});
+  inp.value='';APP.syncUsers();renderOICountries();fillReportCountries();toast(`${c} added!`,'success');
+}
+function removeCountry(c){
+  if(!confirm(`Remove ${c}?`))return;
+  const s=APP.getSession();const idx=APP.users.findIndex(u=>u.id===s.id);
+  APP.users[idx].countries=APP.users[idx].countries.filter(x=>x!==c);
+  APP.setSession({...APP.users[idx],googleAuth:s.googleAuth,picture:s.picture});
+  APP.syncUsers();renderOICountries();fillReportCountries();toast(`${c} removed.`,'success');
+}
+
+// ══════════════════════════════════════════════════════════════
+// OI REPORT SUBMISSION
+// ══════════════════════════════════════════════════════════════
+function fillReportCountries(){
+  const s=APP.getSession();if(!s)return;
+  const sel=document.getElementById('r-country');if(!sel)return;
+  sel.innerHTML='<option value="">-- Select Country --</option>'+(s.countries||[]).map(c=>`<option>${c}</option>`).join('');
+}
+function checkExisting(){
+  const c=document.getElementById('r-country').value;const s=APP.getSession();if(!c||!s)return;
+  const n=APP.reports.filter(r=>r.oiId===s.id&&r.country===c).length;
+  const el=document.getElementById('existing-notice');
+  if(n){el.style.display='block';el.textContent=`ℹ️ You have ${n} existing report(s) for ${c}. Submitting will add a new entry.`;}
+  else el.style.display='none';
+}
+function toggleVisit(show){document.getElementById('visit-det').style.display=show?'block':'none';}
+function onFileSelect(e){addFiles(Array.from(e.target.files));}
+function onDrop(e){e.preventDefault();document.getElementById('file-drop').classList.remove('dragover');addFiles(Array.from(e.dataTransfer.files));}
+function addFiles(files){files.forEach(f=>{if(f.size>5*1024*1024){toast(`${f.name} too large.`,'error');return;}const fr=new FileReader();fr.onload=ev=>{pendingFiles.push({name:f.name,type:f.type,size:f.size,data:ev.target.result});renderFileList();};fr.readAsDataURL(f);});}
+function renderFileList(){document.getElementById('file-list').innerHTML=pendingFiles.map((f,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 11px;background:#f8fafc;border-radius:7px;margin-bottom:5px;font-size:12px;"><span>📄</span><span style="flex:1;">${f.name}</span><span style="color:#9ca3af;">${(f.size/1024).toFixed(1)} KB</span><button class="btn btn-danger btn-sm" onclick="pendingFiles.splice(${i},1);renderFileList()">✕</button></div>`).join('');}
+
+async function submitReport(){
+  const s=APP.getSession();if(!s)return;
+  const country=document.getElementById('r-country').value;if(!country){toast('Select a country.','error');return;}
+  const mouStat=document.getElementById('r-mou').value;if(!mouStat){toast('Select MoU status.','error');return;}
+  const vImpend=document.querySelector('input[name="visit"]:checked').value==='yes';
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.innerHTML=APP.encKey?'<span class="spin"></span>Encrypting & Submitting...':'<span class="spin"></span>Submitting...';
+
+  const plainRep={
+    id:'rep-'+Date.now(),oiId:s.id,oiName:s.name,country,date:new Date().toISOString().split('T')[0],
+    mouStat,mouRef:document.getElementById('r-mou-ref').value,mouDet:document.getElementById('r-mou-det').value,
+    vImpend,vType:vImpend?document.getElementById('r-vtype').value:null,vDate:vImpend?document.getElementById('r-vdate').value:null,
+    vDig:vImpend?document.getElementById('r-vdig').value:null,vDet:vImpend?document.getElementById('r-vdet').value:null,
+    engStat:document.getElementById('r-eng-stat').value,engDet:document.getElementById('r-eng-det').value,
+    notes:document.getElementById('r-notes').value,
+    docs:pendingFiles.map(f=>({name:f.name,type:f.type,size:f.size,data:f.data}))
+  };
+
+  const encRep = await encryptReport(plainRep, APP.encKey);
+  // Store without docs in the server version (docs are too large)
+  const serverRep = {...encRep, docs: (encRep.docs||[]).map(d=>({name:d.name,type:d.type,size:d.size})) };
+  APP.addReport(serverRep, plainRep);
+
+  clearForm();
+  btn.disabled=false;btn.innerHTML='Submit Report';
+  toast(`Report for ${country} ${APP.encKey?'encrypted and submitted':'submitted'}!`,'success');
+  oNav('history');
+}
+
+function clearForm(){
+  document.getElementById('r-country').value='';document.getElementById('r-mou').value='';
+  document.getElementById('r-mou-ref').value='';document.getElementById('r-mou-det').value='';
+  document.querySelector('input[name="visit"][value="no"]').checked=true;toggleVisit(false);
+  document.getElementById('r-eng-stat').value='';document.getElementById('r-eng-det').value='';
+  document.getElementById('r-notes').value='';document.getElementById('existing-notice').style.display='none';
+  pendingFiles=[];renderFileList();
+}
+
+// ══════════════════════════════════════════════════════════════
+// OI HISTORY
+// ══════════════════════════════════════════════════════════════
+function renderOIHist(){
+  const s=APP.getSession();if(!s)return;
+  const reps=[...APP.reports].filter(r=>r.oiId===s.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const el=document.getElementById('oi-hist');
+  if(!reps.length){el.innerHTML=`<div class="empty-state"><div class="ei">📋</div><h3>No Reports Yet</h3></div>`;return;}
+  el.innerHTML=`<div class="table-container"><table>
+    <thead><tr><th>Date</th><th>Country</th><th>MoU</th><th>Visit</th><th>Engagement</th><th></th></tr></thead>
+    <tbody>${reps.map(r=>`<tr>
+      <td>${fmtDate(r.date)}</td><td><strong>${r.country}</strong></td>
+      <td>${mouBadge(r.mouStat)}</td>
+      <td>${r.vImpend?'<span class="badge by">Impending</span>':'<span class="badge bgr">None</span>'}</td>
+      <td>${r.engStat?engBadge(r.engStat):'-'}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="viewReport('${r.id}')">View</button></td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// REPORT DETAIL MODAL
+// ══════════════════════════════════════════════════════════════
+function viewReport(id){
+  curReportId=id;
+  const r=APP.reports.find(x=>x.id===id);if(!r)return;
+  const enc=f=>isEncrypted(r[f]);
+  const show=f=>enc(f)?`<span class="enc-field">🔒 [Encrypted — set decryption key in Settings]</span>`:(r[f]||'No details.');
+  document.getElementById('m-report-title').textContent=`${r.country} — ${fmtDate(r.date)}`;
+  document.getElementById('m-report-body').innerHTML=`
+    <div class="flex g2 fw" style="margin-bottom:14px;">
+      <span class="badge bb">${r.oiName}</span><span class="badge bgr">${fmtDate(r.date)}</span>
+      ${ENC_FIELDS.some(f=>isEncrypted(r[f]))?'<span class="badge bp">🔐 Encrypted</span>':''}
+    </div>
+    <div class="rs"><h4>📜 MoU Status</h4>
+      <div class="flex g2 ic" style="margin-bottom:6px;">${mouBadge(r.mouStat)}${r.mouRef&&!enc('mouRef')?`<span style="font-size:12px;color:#6b7280;">Ref: ${r.mouRef}</span>`:''}</div>
+      <p>${show('mouDet')}</p></div>
+    <hr class="divider">
+    <div class="rs"><h4>✈️ High-Level Visit</h4>
+      ${r.vImpend?`<div class="flex g2 fw" style="margin-bottom:6px;"><span class="badge by">Impending</span>${r.vType?`<span class="badge bp">${r.vType}</span>`:''} ${r.vDate?`<span class="badge bgr">📅 ${r.vDate}</span>`:''}</div>
+      ${r.vDig&&!enc('vDig')?`<p><strong>Dignitary:</strong> ${r.vDig}</p>`:r.vDig?`<p><span class="enc-field">🔒 Dignitary encrypted</span></p>`:''}
+      <p>${show('vDet')}</p>`:'<p style="color:#9ca3af;">No visit impending.</p>'}
+    </div>
+    <hr class="divider">
+    <div class="rs"><h4>🤝 Engagements</h4>
+      ${r.engStat?`<div style="margin-bottom:6px;">${engBadge(r.engStat)}</div>`:''}
+      <p>${show('engDet')}</p></div>
+    ${r.notes?`<hr class="divider"><div class="rs"><h4>📝 Notes</h4><p>${show('notes')}</p></div>`:''}
+    ${r.docs&&r.docs.length?`<hr class="divider"><div class="rs"><h4>📎 Documents (${r.docs.length})</h4>
+      ${r.docs.map(d=>`<div style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:#f8fafc;border-radius:7px;margin-bottom:5px;font-size:12px;">
+        <span>📄</span><span style="flex:1;">${d.name}</span>
+        ${d.data?`<a href="${d.data}" download="${d.name}" class="btn btn-secondary btn-sm">Download</a>`:'<span style="font-size:11px;color:#9ca3af;">Device-only</span>'}
+      </div>`).join('')}</div>`:''}`;
+  document.getElementById('insights-box').style.display='none';
+  document.getElementById('insights-btn').innerHTML='🤖 Get AI Insights';
+  document.getElementById('insights-btn').disabled=false;
+  document.getElementById('m-report-ai').style.display=APP.apiKey?'block':'none';
+  document.getElementById('m-report').classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODALS & UTILS
+// ══════════════════════════════════════════════════════════════
+function closeModal(id){document.getElementById(id).classList.remove('active');}
+document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('active');}));
+
+function toast(msg,type='success'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className=`toast ${type}`;el.style.display='block';
+  clearTimeout(toast._t);toast._t=setTimeout(()=>el.style.display='none',3500);
+}
+function fmtDate(d){if(!d)return'N/A';return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
+function fmtMou(s){return{signed_active:'Signed & Active',under_negotiation:'Under Negotiation',pending_signature:'Pending Signature',expired:'Expired',not_applicable:'Not Applicable'}[s]||s||'—';}
+function mouBadge(s){const c={signed_active:'bg',under_negotiation:'by',pending_signature:'bb',expired:'br',not_applicable:'bgr'}[s]||'bgr';return`<span class="badge ${c}">${fmtMou(s)}</span>`;}
+function fmtEng(s){return{active:'Active',planned:'Planned',completed:'Completed',on_hold:'On Hold',none:'None'}[s]||s||'—';}
+function engBadge(s){const c={active:'bg',planned:'bb',completed:'bgr',on_hold:'by',none:'bgr'}[s]||'bgr';return`<span class="badge ${c}">${fmtEng(s)}</span>`;}
+</script>
+</body>
+</html>
