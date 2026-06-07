@@ -146,12 +146,12 @@ tr:hover td{background:#fafafa;}
     </div>
 
     <!-- Google Sign-In (shown when Client ID is configured) -->
-    <div id="g-btn-wrap" style="display:none;text-align:center;">
+    <div id="g-btn-wrap" style="text-align:center;">
       <div id="g-btn" style="display:inline-block;min-height:44px;"></div>
       <p style="font-size:11px;color:#9ca3af;margin-top:8px;">Sign in with your registered Gmail ID</p>
     </div>
 
-    <div id="g-or" class="or-line" style="display:none;">Admin manual login</div>
+    <div id="g-or" class="or-line">Admin manual login</div>
 
     <!-- Manual Login -->
     <div id="manual-form">
@@ -162,7 +162,7 @@ tr:hover td{background:#fafafa;}
     </div>
 
     <!-- Toggle for manual form when Google is active -->
-    <div id="show-manual" style="display:none;text-align:center;margin-top:14px;">
+    <div id="show-manual" style="text-align:center;margin-top:14px;">
       <button class="btn btn-secondary btn-sm" onclick="toggleManual()">🔐 Admin / Manual Login</button>
     </div>
 
@@ -541,6 +541,8 @@ async function decryptAll(reports, aesKey) {
 // ══════════════════════════════════════════════════════════════
 // APP STATE
 // ══════════════════════════════════════════════════════════════
+const GOOGLE_CLIENT_ID = '900494937949-ifjtric1onhcfl5llr4jr95afujkptsp.apps.googleusercontent.com';
+
 const APP = {
   users:      [],
   _rawReps:   [],   // as received from server (may be encrypted)
@@ -552,7 +554,7 @@ const APP = {
   set scriptUrl(v)     { localStorage.setItem('ic_script_url', v); },
   get apiKey()         { return localStorage.getItem('ic_api_key') || ''; },
   set apiKey(v)        { localStorage.setItem('ic_api_key', v); },
-  get googleClientId() { return localStorage.getItem('ic_gsi_id') || ''; },
+  get googleClientId() { return GOOGLE_CLIENT_ID || localStorage.getItem('ic_gsi_id') || ''; },
   set googleClientId(v){ localStorage.setItem('ic_gsi_id', v); },
   get rawEncPwd()      { return localStorage.getItem('ic_enc_key') || ''; },
   set rawEncPwd(v)     { localStorage.setItem('ic_enc_key', v); },
